@@ -1,3 +1,6 @@
-# AOAHOP : Android Open Accessory Host on PC
+# libaccessoryhost : Library for Android Open Accessory Host
 
-under developing...
+> GOAL: Making PC library whick like AndroidAccessory in Arduino. 
+
+** Under developing... You may not want clone this yet! **
+
