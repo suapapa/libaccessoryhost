@@ -47,7 +47,7 @@
 #include <linux/usbdevice_fs.h>
 #include <asm/byteorder.h>
 
-#include "usbhost/usbhost.h"
+#include "usbhost.h"
 
 #define USB_FS_DIR "/dev/bus/usb"
 #define USB_FS_ID_SCANNER   "/dev/bus/usb/%d/%d"
