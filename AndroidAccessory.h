@@ -17,52 +17,65 @@
 #ifndef __AndroidAccessory_h__
 #define __AndroidAccessory_h__
 
-#include "WProgram.h"
+#include <linux/version.h>
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 20)
+#include <linux/usb/ch9.h>
+#else
+#include <linux/usb_ch9.h>
+#endif
+
+// TODO: Isn't this limit of Max3421e?
+#define USB_NAK_LIMIT       32000
 
 class AndroidAccessory {
-private:
-    const char *manufacturer;
-    const char *model;
-    const char *description;
-    const char *version;
-    const char *uri;
-    const char *serial;
+public:
+    AndroidAccessory(const char* manufacturer,
+                     const char* model,
+                     const char* description,
+                     const char* version,
+                     const char* uri,
+                     const char* serial);
+    ~AndroidAccessory(void);
 
-    MAX3421E max;
-    USB usb;
-    bool connected;
-    uint8_t in;
-    uint8_t out;
+    void powerOn(void);
+
+    bool isConnected(void);
+    int read(void* buff, int len, unsigned int nakLimit = USB_NAK_LIMIT);
+    int write(void* buff, int len);
+
+private:
+    const char* _manufacturer;
+    const char* _model;
+    const char* _description;
+    const char* _version;
+    const char* _uri;
+    const char* _serial;
+
+    bool _inited;
+    bool _connected;
+
+    struct usb_device *_dev; 
+
+    int _epRead;
+    int _epWrite;
+
+    void* _context;
 
     EP_RECORD epRecord[8];
 
     uint8_t descBuff[256];
 
-    bool isAccessoryDevice(USB_DEVICE_DESCRIPTOR *desc)
-    {
-        return desc->idVendor == 0x18d1 &&
-            (desc->idProduct == 0x2D00 || desc->idProduct == 0x2D01);
-    }
-
-    int getProtocol(byte addr);
-    void sendString(byte addr, int index, const char *str);
-    bool switchDevice(byte addr);
-    bool findEndpoints(byte addr, EP_RECORD *inEp, EP_RECORD *outEp);
+    void _disconnect(void);
+    bool _isAccessoryDevice(struct usb_device *dev);
+    void _sendString(struct usb_device* dev, int index, const char* str);
+    int  _getProtocol(struct usb_device* dev);
+    bool _switchDevice(struct usb_device* dev);
+    bool _findEndpoints(struct usb_device* dev, int* epRead, int* epWrite);
     bool configureAndroid(void);
 
-public:
-    AndroidAccessory(const char *manufacturer,
-                     const char *model,
-                     const char *description,
-                     const char *version,
-                     const char *uri,
-                     const char *serial);
+    int _cbHostDeviceAdded(const char* devname, void* client_data);
+    int _cbHostDeviceRemoved(const char* devname, void* client_data);
 
-    void powerOn(void);
-
-    bool isConnected(void);
-    int read(void *buff, int len, unsigned int nakLimit = USB_NAK_LIMIT);
-    int write(void *buff, int len);
 };
 
 #endif /* __AndroidAccessory_h__ */
